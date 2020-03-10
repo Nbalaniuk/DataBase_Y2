@@ -1,0 +1,56 @@
+CREATE TABLE Repair(
+  itemNumber NUMBER(3),
+  type VARCHAR2(30),
+  acquisitionCost NUMBER(6),
+  repairNumber NUMBER(4),
+  repairDate DATE,
+  repairAmount NUMBER(4)
+);
+
+SELECT * FROM Repair;
+DROP TABLE Repair;
+
+INSERT INTO Repair (itemNumber, type, acquisitionCost, repairNumber, repairDate, repairAmount) VALUES (100, 'Drill Press', 3500, 2000, '5-May-04',375);
+INSERT INTO Repair (itemNumber, type, acquisitionCost, repairNumber, repairDate, repairAmount) VALUES (200, 'Lathe', 4750, 2100, '7-May-04',255);
+INSERT INTO Repair (itemNumber, type, acquisitionCost, repairNumber, repairDate, repairAmount) VALUES (100, 'Drill Press', 3500, 2200, '19-May-04',178);
+INSERT INTO Repair (itemNumber, type, acquisitionCost, repairNumber, repairDate, repairAmount) VALUES (300, 'Mill', 273000, 2300, '19-May-04',1785);
+INSERT INTO Repair (itemNumber, type, acquisitionCost, repairNumber, repairDate, repairAmount) VALUES (100, 'Drill Press', 3500, 2400, '11-May-04',0);
+INSERT INTO Repair (itemNumber, type, acquisitionCost, repairNumber, repairDate, repairAmount) VALUES (100, 'Drill Press', 3500, 2500, '1-Jun-04',275);
+
+
+CREATE TABLE Item(
+  itemNumber NUMBER(3) CONSTRAINT item_itemNumber_pk PRIMARY KEY,
+  type VARCHAR2(30),
+  acquisitionCost NUMBER(6)
+);
+
+SELECT * FROM Item;
+
+CREATE TABLE ItemRepair(
+  repairNumber NUMBER(4) CONSTRAINT itemRepair_itemNumber_pk PRIMARY KEY,
+  repairDate DATE,
+  repairAmount NUMBER(4),
+  itemNumber NUMBER(3) CONSTRAINT itemRepair_itemNumber_fk REFERENCES Item(itemNumber)
+);
+
+SELECT * FROM ItemRepair;
+SELECT * FROM Item;
+
+INSERT INTO Item SELECT DISTINCT itemNumber, type,acquisitionCost FROM Repair;
+INSERT INTO ItemRepair SELECT DISTINCT repairNumber, repairDate, repairAmount, itemNumber FROM Repair;
+
+COMMIT;
+
+
+
+
+
+
+
+
+
+
+
+
+
+

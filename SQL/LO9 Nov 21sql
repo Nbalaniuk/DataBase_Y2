@@ -1,0 +1,261 @@
+--LO9 PL/SQL
+
+
+--ex 1
+
+DECLARE
+
+  vNumber BINARY_INTEGER;
+BEGIN 
+  --read a number from the user
+  vNumber := TO_NUMBER('&enter_a_number');
+  --Checl if it is a small number
+  IF vNumber < 5 THEN
+  
+    DBMS_OUTPUT.PUT_LINE('number is small');
+  
+  ELSE
+  
+    DBMS_OUTPUT.PUT_LINE('number is large');
+  
+  END IF;
+
+END;
+
+--Ex 2 else if
+--use if/else if to check for evenm odd small or odd large
+DECLARE
+
+  vNumber BINARY_INTEGER;
+
+BEGIN
+
+  vNumber := TO_NUMBER('&enter_a_number');
+  --if even, out put message
+  IF MOD(vNumber, 2) = 0 THEN
+  
+     DBMS_OUTPUT.PUT_LINE('Number is even');
+    
+    ELSIF vNUMBER < 5 THEN
+    
+      DBMS_OUTPUT.PUT_LINE('Number is small and odd');
+    
+    ELSE
+    
+      DBMS_OUTPUT.PUT_LINE('Number is large and odd');
+  
+  END IF;
+
+END;
+
+--Ex 3
+--read in 2 variables, a and b
+--if a = 100, and b = 200 output message
+-- if a = 100 and b != 200, output different message
+--use nested if
+--attempt to output the value of the variables
+
+DECLARE
+
+  a BINARY_INTEGER;
+  b BINARY_INTEGER;
+
+BEGIN
+
+  a := TO_NUMBER('&Enter_Num_for_A');
+  b := TO_NUMBER('&Enter_Num_For_B');
+  
+  IF a = 100 THEN
+  --Nested if
+    IF b = 200 THEN
+    
+      DBMS_OUTPUT.PUT_LINE('A = '||a ||' and B = '||b);
+    
+      ELSE
+    
+      DBMS_OUTPUT.PUT_LINE('A = '||a ||' and B = '||b);
+    
+    END IF; -- end of nested if
+    
+  END IF;
+
+END;
+
+
+
+--Ex 4 Case
+--Input a grade, output appropriate message
+
+DECLARE
+
+  grade CHAR := UPPER('&grade');
+
+BEGIN
+
+  CASE grade
+    
+    WHEN 'A' THEN DBMS_OUTPUT.PUT_LINE('Excellent');
+    WHEN 'B' THEN DBMS_OUTPUT.PUT_LINE('Very Good');
+    WHEN 'C' THEN DBMS_OUTPUT.PUT_LINE('Good');
+    WHEN 'D' THEN DBMS_OUTPUT.PUT_LINE('Fair');
+    WHEN 'F' THEN DBMS_OUTPUT.PUT_LINE('Poor');
+    ELSE DBMS_OUTPUT.PUT_LINE('Invalid Grade');
+    
+  END CASE;
+
+END;
+
+
+--EX 5
+--LOOPS
+--Start x at 10, loop until is larger than 50, print each iteration and value after final iteration
+--DO WHILE LOOP
+
+DECLARE
+
+  x NUMBER := 10;
+
+BEGIN
+
+  --loop until > 50
+  LOOP
+  
+    DBMS_OUTPUT.PUT_LINE(x);
+    x:= x+10;
+    EXIT WHEN x > 50;
+  
+  END LOOP;
+
+ DBMS_OUTPUT.PUT_LINE('After exit: '||x);
+
+END;
+
+
+--ex 6 , do same as above but with while loop
+
+
+DECLARE
+
+  x NUMBER := 10;
+
+BEGIN
+
+  WHILE x < 50 LOOP
+  
+    DBMS_OUTPUT.PUT_LINE(x);
+    x:= x+10;
+  
+  END LOOP;
+
+  DBMS_OUTPUT.PUT_LINE('After exit: '||x);
+
+END;
+
+
+
+
+--ex 7, same as above but with for loop
+
+
+DECLARE
+
+  x NUMBER := 10;
+  --i NUMBER := 1;
+
+BEGIN
+
+  FOR i IN 1..5 LOOP
+  
+    DBMS_OUTPUT.PUT_LINE(x);
+    x:= x+10;
+  
+  END LOOP;
+
+  DBMS_OUTPUT.PUT_LINE('After exit: '||x);
+
+END;
+
+--EX 8 Nested blocks and nested loops
+--Note: Can do Neted loops without nested blocks ( just demonstrating both at the same time here)
+
+--Have an X and counter variables in outer block/loop, and have another x in
+--inner block/loop
+--observe results
+DECLARE --outer block
+
+  X NUMBER :=0;
+  counter NUMBER :=0;
+
+BEGIN
+
+  --outer loop
+  FOR i IN 1..4 LOOP
+  
+    X:= x+100;
+    counter := counter +1;
+    DBMS_OUTPUT.PUT_LINE('X: '||x||' Counter: '||counter|| ' in outer block');
+    --Inner block/loop ( can do nested loop without nested block, just showing it)
+    DECLARE
+    
+    X NUMBER := 0; -- this will 'eclipse' the outer x, the inner block cannot see the outer x
+    
+    BEGIN
+    
+      FOR i IN 1..4 LOOP--inner loop
+      
+      x := x+1;
+      counter := counter +1;
+      DBMS_OUTPUT.PUT_LINE('X: '||x||' Counter: '||counter|| ' in inner block');
+      
+      END LOOP;--end of inner loop
+    
+    END;--End inner block
+    
+  END LOOP;
+  
+  DBMS_OUTPUT.PUT_LINE('X: '||x||' Counter: '||counter|| ' in end');
+
+END;
+
+
+--Ex practice
+--Read in 2 variables first is starting point, and second is how much to  decrement
+--loop until the first has been reduced to zero, output each loop
+
+DECLARE
+
+  nStart NUMBER := ('&start_point');
+  nDec NUMBER := ('&Decrement_amount');
+
+BEGIN
+
+  WHILE nStart >= 0 LOOP
+   DBMS_OUTPUT.PUT_LINE(nStart);
+    nStart:= nStart-nDec;
+   
+  
+  END LOOP;
+
+ DBMS_OUTPUT.PUT_LINE('At end: '||nStart);
+END;
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

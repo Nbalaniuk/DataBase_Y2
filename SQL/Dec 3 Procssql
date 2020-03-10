@@ -1,0 +1,197 @@
+--9.3 Funcs
+SELECT * FROM Author;
+
+CREATE OR REPLACE FUNCTION title_func RETURN VARCHAR2
+IS
+  title_name title.title%TYPE;
+
+BEGIN
+  SELECT title INTO title_name FROM title WHERE titleid = 'PC8888';
+  RETURN title_name;
+
+END;
+
+SELECT Title_func FROM DUAL;
+--running the function
+BEGIN
+  DBMS_OUTPUT.PUT_LINE(title_func);
+END;
+--add to above
+
+CREATE OR REPLACE FUNCTION title_func2(bookid CHAR) RETURN VARCHAR2
+IS
+  title_name title.title%TYPE;
+
+BEGIN
+  SELECT title INTO title_name FROM title WHERE titleid = bookid;
+  RETURN title_name;
+
+EXCEPTION
+  WHEN NO_DATA_FOUND THEN
+    RETURN 'NO SUCH TITLE';
+END;
+
+
+BEGIN
+  DBMS_OUTPUT.PUT_LINE(title_func2('PC8888'));
+END;
+
+BEGIN
+  DBMS_OUTPUT.PUT_LINE(title_func2('PC7777'));
+END;
+
+SELECT title_func2(titleid) FROM Title;
+
+--Exercises
+
+DECLARE
+  CURSOR title_cur IS
+    SELECT title, titleid FROM TITLE;
+BEGIN--first begin
+ FOR title_rec IN title_cur LOOP
+ DBMS_OUTPUT.PUT_LINE('');
+  DBMS_OUTPUT.PUT_LINE(title_rec.title);
+      DECLARE--second block
+      --author cursor
+        CURSOR author_cur IS 
+          SELECT A.auid, A.auFName||' '||A.auLName AS auName FROM Author A JOIN 
+          TitleAuthor TA ON A.auID = TA.auID WHERE TA.titleID = title_rec.TitleID ORDER BY TA.auOrder;
+          --Editor cursor
+        CURSOR  editor_cur IS
+          SELECT  E.edID, E.edfName ||' '|| E.edlname AS edName FROM Editor E JOIN 
+          TitleEditor TE ON E.edID = TE.edid WHERE TE.titleID = title_rec.TitleID ORDER BY TE.edOrder;
+      BEGIN--second begin
+          DBMS_OUTPUT.PUT('Authors: ');
+            FOR author_rec IN author_cur LOOP--nested author loop
+              DBMS_OUTPUT.PUT(author_rec.auName||'  ');        
+            END LOOP;  --end of author loop
+          DBMS_OUTPUT.PUT_LINE('');  
+          DBMS_OUTPUT.PUT('Editors: ');
+            FOR editor_rec IN editor_cur LOOP--start ed rec loop
+              DBMS_OUTPUT.PUT(editor_rec.edName||'  ');            
+            END LOOP;--end ed rec loop
+            DBMS_OUTPUT.PUT_LINE('');       
+      END;--end of nested block
+ END LOOP;--end of title loop
+END;
+
+--Exercise 2
+CREATE OR REPLACE PROCEDURE newRoySched(titleID_in title.titleid%TYPE, loRange_in RoySched.loRange%TYPE, hiRange_in RoySched.hiRange%TYPE, royalty_in RoySched.royalty%TYPE)
+IS
+  CURSOR title_cur IS 
+    SELECT titleID, loRange, hiRange FROM RoySched WHERE titleID = titleID_in;
+--  loRange NUMBER ;
+--  hiRange NUMBER ;
+  maxHi NUMBER :=0;
+ vCount NUMBER;
+  
+  
+BEGIN
+  SELECT COUNT(*) INTO vCount FROM title WHERE titleid=titleID_in;
+  IF vCount =0 THEN
+    RAISE_APPLICATION_ERROR(-20950, 'No such titleID: '||titleID_in); 
+  END IF;
+
+
+--  IF title_cur%FOUND =FALSE THEN
+--    RAISE_APPLICATION_ERROR(-20950, 'No such titleID: '||titleID_in); 
+--  END IF;
+  
+  IF loRange_in > hiRange_in THEN
+    RAISE_APPLICATION_ERROR(-20951, 'Low range must be less than hi range: <'||loRange_in||'>, <'||hiRange_in||'>.');
+  END IF;
+
+
+  FOR title_rec IN title_cur LOOP
+    
+    IF title_rec.hiRange > maxHi THEN
+      maxHi := title_rec.hiRange;-- the loRange_in cannot be between 0 and the highest existing hiRange
+    END IF;
+    
+  END LOOP;
+  
+  IF loRange_in <= maxHi THEN
+  RAISE_APPLICATION_ERROR(-20952,'Range overlaps existing rage: <'||loRange_in||'>, <'||hiRange_in||'>.');
+  
+  END IF;
+
+  INSERT INTO RoySched (titleID, loRange, hiRange, royalty) VALUES (titleID_in, loRange_in, hiRange_in, royalty_in);
+
+END;
+
+
+EXECUTE NewRoySched('BU1032',50002,120000,0.20);
+
+
+
+
+
+SELECT * FROM RoySched;
+DESC RoySched;
+
+DESC author;
+
+
+--Part 3
+CREATE OR REPLACE FUNCTION find_Author_Func( firstName author.aufName%TYPE, lastName author.aulName%TYPE) RETURN CHAR
+IS
+  CURSOR author_cur IS
+    SELECT auid FROM Author WHERE (aufName = firstName AND aulName = lastName);
+  vAUDID Author.auid%TYPE;  
+BEGIN
+  
+  SELECT auID INTO  vAuID FROM AUTHOR WHERE auFname = FirstName AND aulName = LastName;
+
+  IF author_cur%ROWCOUNT > 1 THEN
+    RAISE_APPLICATION_ERROR(-20900, 'No such author: <'||firstName||'>, <'||lastName||'>');
+  END IF;
+  
+  IF author_cur%NOTFOUND = TRUE THEN
+    RAISE_APPLICATION_ERROR(-20901, 'More than one author named: <'||firstName||'>, <'||lastName||'>');
+  END IF;
+
+END;
+
+SELECT * FROM AUTHOR;
+
+BEGIN
+  DBMS_OUTPUT.PUT_LINE(find_Author_Func('Bennet','Abraham'));
+END;
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

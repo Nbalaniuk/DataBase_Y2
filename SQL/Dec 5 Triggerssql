@@ -1,0 +1,113 @@
+
+--LO9.4 Triggers
+--Create table store an audit trail
+CREATE TABLE Title_price_history (titleID CHAR(6), title VARCHAR(80), pubid CHAR(4), price NUMBER (9,2));
+
+--Trigger that will create an audit trail whenever a price changes
+
+CREATE OR REPLACE TRIGGER price_history_trigger
+    BEFORE UPDATE OF Price ON Title
+    FOR EACH ROW  --row level trigger
+  BEGIN
+    --write the data to the audit table
+    INSERT INTO title_price_history VALUES (:OLD.titleID, :OLD.title, :OLD.pubid, :OLD.price);
+    
+    
+  END;
+
+
+SELECT * FROM USER_TRIGGERS;
+
+--Cause trigger to fire
+UPDATE Title SET Price = 20 WHERE Titleid IN ('PS7777', 'PC8888');
+
+--check audit table
+SELECT * FROM Title_price_history;
+
+
+--Trigger Order of heirchy
+CREATE TABLE trigger_messages(message VARCHAR2(50), current_date Date);
+
+--before statement level
+CREATE OR REPLACE TRIGGER before_statement_title 
+  BEFORE UPDATE ON TITLE
+BEGIN
+  INSERT INTO trigger_messages VALUES('Before statement level', SYSDATE);
+END;
+
+--after statement level
+CREATE OR REPLACE TRIGGER after_statement_title 
+  AFTER UPDATE ON TITLE 
+BEGIN
+  INSERT INTO trigger_messages VALUES('After statement level', SYSDATE);
+END;
+
+--before row level
+CREATE OR REPLACE TRIGGER before_row_title 
+  BEFORE UPDATE ON TITLE
+  FOR EACH ROW
+BEGIN
+  INSERT INTO trigger_messages VALUES('Before row level', SYSDATE);
+END;
+
+--after row level
+CREATE OR REPLACE TRIGGER after_row_title 
+  AFTER UPDATE ON TITLE
+  FOR EACH ROW
+BEGIN
+  INSERT INTO trigger_messages VALUES('After row level', SYSDATE);
+END;
+
+
+--Make a change
+UPDATE Title SET Price = 80 WHERE titleID IN ('PS3333', 'BU1111','PC8888');
+SELECT * FROM trigger_messages;
+SELECT * FROM title_price_history;
+
+--determine what operation is occuring (insert, update, delete)
+CREATE OR REPLACE TRIGGER title_trigger2
+  BEFORE INSERT OR UPDATE OF Price ON Title
+BEGIN
+  CASE
+  
+    WHEN INSERTING THEN
+      DBMS_OUTPUT.PUT_LINE('Inserting');
+    WHEN UPDATING('Price') THEN
+      DBMS_OUTPUT.PUT_LINE('Updating');
+    
+    
+  END CASE;
+  
+  
+END;
+
+
+INSERT INTO Title (titleID, title, Contract, price) VALUES ('TL9999','My Book', '1', 20);
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

@@ -1,0 +1,135 @@
+DROP TABLE OaklandAuthors;
+
+CREATE TABLE OaklandAuthors(
+  ID VARCHAR2(20),
+  Fname VARCHAR2(50),
+  Lname VARCHAR2(50),
+  BookCount NUMBER(2)
+
+);
+
+DECLARE
+
+  CURSOR authors_cur IS 
+    SELECT  COUNT(T.Titleid) AS BookNum, A.auid, A.aulname, A.aufname FROM Title T JOIN TitleAuthor TA ON T.titleid = TA.titleID 
+    JOIN Author A on TA.auid = A.auid
+    WHERE A.city = 'Oakland'
+    GROUP BY A.auid, A.aulname, A.aufname;
+
+  auNum NUMBER :=0;
+  bookNum NUMBER :=0;
+  
+BEGIN
+  
+  FOR author_rec IN authors_cur LOOP
+  --DBMS_OUTPUT.PUT_LINE('info: '||author_rec.BookNum);
+  --DBMS_OUTPUT.PUT_LINE('1');
+    INSERT INTO OaklandAuthors VALUES (author_rec.auid, author_rec.aufname, author_rec.aulname, author_rec.BookNum);
+    auNum := auNum + 1;
+    bookNum:= bookNum + author_rec.BookNum;
+  
+  END LOOP;
+
+  DBMS_OUTPUT.PUT_LINE('Number of authors: '||auNum || ' Number of books: '||bookNum);
+
+END;
+
+SELECT * FROM OAKLANDAUTHORS;
+
+SELECT * FROM AUTHOR ;
+
+SELECT COUNT(T.Titleid), A.auid, A.aulname, A.aufname FROM Title T JOIN TitleAuthor TA ON T.titleid = TA.titleID 
+JOIN Author A on TA.auid = A.auid
+WHERE A.city = 'Oakland'
+GROUP BY A.auid, A.aulname, A.aufname;
+
+SELECT * FROM Title;
+
+
+
+--Part 2
+
+DECLARE
+
+  auRemoved NUMBER :=0;
+  
+  CURSOR OneBookAu_cur IS
+    SELECT DISTINCT * FROM OaklandAuthors WHERE BOOKCOUNT < 2;
+
+  CURSOR ManyBookAu_cur IS
+    SELECT DISTINCT * FROM OaklandAuthors WHERE bookcount >1;
+    
+  auRemain VARCHAR2(100) :='';
+    
+BEGIN
+
+  FOR oneBook_rec IN OneBookAu_cur LOOP
+  
+    DELETE FROM OAKLANDAUTHORS WHERE id = oneBook_rec.id;
+    auRemoved := auRemoved +1;
+    
+  END LOOP;
+    
+  DBMS_OUTPUT.PUT_LINE('Number of authors removed: '||auRemoved);
+  
+  
+  FOR manyBookau_rec IN ManyBookau_cur LOOP
+  
+    auRemain := auRemain || ', ' ||manyBookau_rec.Fname|| ' '||manyBookau_rec.Lname;
+  
+  END LOOP;
+  DBMS_OUTPUT.PUT_LINE('Authors that remain: '||auRemain);
+
+END;
+
+--class solution
+
+DECLARE
+  CURSOR author_cur IS
+    SELECT AUFNAME || ' ' || AULNAME AS AUNAME FROM OAKLANDAUTHORS;
+BEGIN
+  DELETE FROM OAKLANDAUTHORS WHERE BOOKCOUNT < 2;
+  DBMS_OUTPUT.PUT_LINE(SQL%ROWCOUNT);
+  FOR auth_rec IN author_cur LOOP
+    DBMS_OUTPUT.PUT_LINE(auth_rec.auname);
+  END LOOP;
+END;
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

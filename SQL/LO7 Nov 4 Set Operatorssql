@@ -1,0 +1,132 @@
+--SET OPERATORS (UNION, INTERSECT, MINUS)
+
+--Showe all authors and all editors from Oakland
+--create the 2 SELECT statements, remove the first ; and add UNION between the 2
+SELECT aufname AS firstName, aulName as LastName from AUTHOR WHERE city ='Oakland'
+UNION
+SELECT edfname, edlName from EDITOR WHERE city ='Oakland'
+ORDER BY LastName; -- or can do 2 (the second parameter)
+
+
+
+
+--Using UNION to combine multiple scenarios
+SELECT * FROM Title;
+SELECT '30% OFF' AS Discount, title, price AS "OldPrice", price * 0.7 AS "NewPrice" FROM Title WHERE Price >25
+UNION
+SELECT '20% OFF' AS Discount, title, price AS "OldPrice", price * 0.8 AS "NewPrice" FROM Title WHERE Price BETWEEN 15 AND 25
+UNION
+SELECT '30% OFF' AS Discount, title, price AS "OldPrice", price * 0.9 AS "NewPrice" FROM Title WHERE Price <15
+ORDER BY 2;
+
+
+--INTERSECT
+--What cities have both authors and publishers
+SELECT city FROM Author
+INTERSECT
+SELECT city FROM Publisher;
+
+--MINUS
+--Results from author, and take away any overlap with Editor
+--Cities from authors with publisher cities removed
+SELECT city FROM Author
+MINUS
+SELECT city FROM Publisher;
+
+
+--NOV 5th exercise
+
+--1
+SELECT OrderNum, cusName FROM Orders O JOIN Customers C ON O.customerNum = C.customernum;
+
+
+--2
+SELECT cusName, salespName, commission FROM Salespeople S JOIN Customers C ON S.salespersonNum = C.salespersonNum WHERE S.commission >0.12;
+
+--3
+SELECT S.salespersonNum, commission*orderamount, O.orderNum FROM Salespeople S JOIN Orders O ON S.salespersonNum  = O.SALESPERSONNUM  JOIN Customers C ON O.customerNum = C.CustomerNum WHERE cusRating >100;
+
+--4
+--copy pasted
+INSERT INTO Salespeople (salespersonnum, salespname, salespcity, commission) VALUES (1020, 'Wing', 'Bangkok', .11);
+INSERT INTO Customers (customernum, cusname, cuscity, cusrating, salespersonnum)VALUES (2009, 'Christy', 'Bangkok', 200, NULL);
+
+COMMIT;
+
+CREATE TABLE Employees
+(empno   NUMBER(4)    NOT NULL PRIMARY KEY,
+ name    VARCHAR2(20) NOT NULL,
+ manager NUMBER(4)    NULL REFERENCES Employees(empno)
+);
+INSERT INTO Employees (empno, name, manager)
+VALUES (2007, 'Atali', NULL);
+INSERT INTO Employees (empno, name, manager)
+VALUES (1003, 'Terrence', 2007);
+INSERT INTO Employees (empno, name, manager)
+VALUES (1688, 'McKeen', 1003);
+INSERT INTO Employees (empno, name, manager)
+VALUES (2002, 'Collier', 2007);
+COMMIT;
+--end of copy paste
+
+--5
+SELECT S.salespersonNum, S.salespname , O.orderNum, O.orderAmount, O.OrderDate  FROM SalesPeople S LEFT JOIN Orders O ON S.salespersonnum = O.salespersonnum AND orderDate='03-OCT-2000';
+
+--6
+SELECT CusName, customerNum, S.salespersonNum, salespName FROM Customers C RIGHT JOIN Salespeople S ON C.salespersonnum = S.salespersonNum;
+
+--7
+SELECT C.customerNum, cusname, S.salespersonNum, salesPName FROM Customers C FULL OUTER JOIN SalesPeople S ON C.SALESPERSONNUM = S.SALESPERSONNUM;
+
+--8
+SELECT e.empno, e.name, m.name
+FROM Employees e, Employees m
+WHERE e.manager = m.empno;
+
+SELECT e.empno, e.name, m.name FROM Employees e LEFT JOIN Employees m ON e.manager = m.empno;
+
+--9
+SELECT salesPersonNum AS PersonNum, salespName AS PersonName FROM salesPeople WHERE(salespCity ='London')
+UNION
+SELECT customerNum, cusName FROM Customers WHERE (cusCity = 'London');
+
+SELECT S.salesPersonNum, salespName, customerNum, cusName FROM Customers C JOIN SalesPeople S ON S.SalespersonNum = C.salesPersonNum WHERE(S.salespCity='London' OR C.CUSCITY='London');
+
+--10
+SELECT cusName, cusCity, cusRating, 'High Rating' AS RatingDesc FROM Customers WHERE cusRating >=200
+UNION
+SELECT cusName, cusCity, cusRating, 'Low Rating' AS RatingDesc FROM Customers WHERE (CusRating <200 OR cusRating IS NULL);
+
+--11
+SELECT S.SalesPerson, salespName FROM SalesPeople S JOIN Orders O ON S.SalesPersonNum = O.SalesPersonNum 
+  GROUP BY S.SalesPersonNum, SalespName HAVING COUNT(*) >1
+UNION
+SELECT C.cusName, C.customerNum FROM Customers C JOIN Orders O ON C.CUSTOMERNUM = O.CUStomerNum 
+  GROUP BY C.CustomerNum, CusName
+  HAVING COUNT(*) > 1
+  ORDER BY 2;
+
+
+--12
+SELECT S.SalesPersonNum,S.SALESPCITY, cusName FROM SalesPeople S JOIN Customers C ON S.salespCity = C.cusCity;
+
+SELECT C.CustomerNum, CusName, S.SalesPersonNum,SalespName, S.salespCity FROM Customers C JOIN SalesPeople S on C.CusCity = S.SALESPCITY;
+
+--13
+SELECT OrderNum, S.SalesPersonNum, S.SALESPCITY, C.CusCity, C.CustomerNum FROM SalesPeople S JOIN Customers C ON S.SALESPERSONNUM = C.SALESPERSONNUM
+  JOIN Orders O ON C.CUSTOMERNUM = O.CUSTOMERNUM WHERE S.SALESPCITY != C.CusCity;
+
+--14
+SELECT DISTINCT A.salespName, B.SalespName, A.SalesPersonNum, B.SalesPersonNum, A.salespCity FROM SalesPeople A INNER JOIN SalesPeople B ON A.SalespCity = B.salesPCity  
+WHERE A.SalesPName < B.SalesPName;
+
+
+
+
+--15 - subqueries ftw
+SELECT cusName, cusCity, cusRating FROM Customers A WHERE (A.CusRating = (SELECT CusRating FROM Customers WHERE customerNum =2001));
+
+
+
+
+

@@ -1,0 +1,128 @@
+--JOINS
+
+
+--combine data fomr several tables
+SELECT titleID, title, pubID FROM TITLE;
+SELECT pubID, pubName FROM Publisher;
+
+--combine:
+SELECT titleID, title, Title.pubID, pubName
+FROM TITLE JOIN Publisher ON Title.pubID = Publisher.pubID;
+
+--Use aliases for the tables
+SELECT titleID, title, T.pubID, pubName
+FROM TITLE T JOIN Publisher P ON T.pubID = P.pubID;
+
+
+--add in the author first and last name to the above query
+SELECT T.titleID, title, T.pubID, pubName, auLName, auFName
+FROM TITLE T JOIN Publisher P ON T.pubID = P.pubID  -- this all becomes left
+             JOIN TitleAuthor TA ON TA.titleID = T.titleID--tis becomes right
+             JOIN Author A ON A.auID = TA.auID;
+--Can use where/order by etc as well             
+SELECT T.titleID, title, T.pubID, pubName, auLName, auFName
+FROM TITLE T JOIN Publisher P ON T.pubID = P.pubID  -- this all becomes left
+             JOIN TitleAuthor TA ON TA.titleID = T.titleID--tis becomes right
+             JOIN Author A ON A.auID = TA.auID
+WHERE price > 25
+ORDER BY title;
+
+--show the editor names (concat first and last names) and the book titles they edit
+SELECT  T.title,  E.edFName ||' '||E.edLName
+FROM Title T JOIN TitleEditor TE ON T.titleID = TE.titleID
+             JOIN Editor E ON E.edID = TE.edID;
+             
+             
+--OUTER JOINS
+SELECT * FROM Employee;
+SELECT * FROM Project;
+SELECT * FROM Assignment;
+--Projct 1500 not shown with inner join
+SELECT empName, hoursWorked, prjname FROM Employee E JOIN Assignment A ON E.empNumber = A.empNumber
+                                                      JOIN Project P on P.projectID = A.projectID;
+                                                      
+
+--outer join to add it in
+SELECT empName, hoursWorked, prjname FROM Employee E JOIN Assignment A ON E.empNumber = A.empNumber
+                                                      RIGHT JOIN Project P on P.projectID = A.projectID;
+
+
+--WHat if you change the ordre of the joins
+SELECT empName, hoursWorked, prjname FROM Project P LEFT JOIN Assignment A ON P.projectID = A.ProjectID
+  LEFT JOIN Employee E ON E.empNumber = A.empNumber;
+
+--SHOW author name and book titles, include authors without books
+SELECT T.titleID, title, auLName, auFName
+FROM TITLE T  JOIN TitleAuthor TA ON TA.titleID = T.titleID--tis becomes right
+             RIGHT JOIN Author A ON A.auID = TA.auID
+             ORDER BY T.Title;
+             
+--another order
+SELECT aufname, aulname, title
+FROM Author A LEFT JOIN TitleAuthor TA on A.auid = TA.auid
+              LEFT JOIN Title T ON TA.titleID = T.titleID
+              ORDER BY Title;
+              
+              
+              
+--FULL JOIN
+--Insert a couple records without macthes
+INSERT INTO Publisher (pubid,pubName) VALUES (1000,'New Publisher');
+INSERT INTO Title(titleID, title, contract) VALUES ('AAAAA' ,'New Book', 'n');
+
+SELECT T.pubid, pubname, title FROM Title T JOIN Publisher P ON T.pubid = P.pubid;
+--THE FULL JOIN
+SELECT T.pubid, pubname, title FROM Title T FULL JOIN Publisher P ON T.pubid = P.pubid;
+
+--What if i Dont want to see the matches
+SELECT T.pubid, pubname, title FROM Title T FULL JOIN Publisher P ON T.pubid = P.pubid WHERE T.pubid IS NULL OR P.pubid IS NULL;
+
+
+--SELF JOIN
+--Show the editors and their bosses
+SELECT * FROM Editor;
+
+SELECT E.edid, E.edfname, E.edlname, B.edid , B.edfname, B.edlname FROM Editor E JOIN Editor B ON E.edBoss = b.edid;
+--outer join to also show the employees without bosses
+SELECT E.edid, E.edfname, E.edlname, B.edid , B.edfname, B.edlname FROM Editor E LEFT JOIN Editor B ON E.edBoss = b.edid;
+
+--Joining on non-key fields
+--Authors and publishers from same city
+SELECT aufname, aulname, pubname, A.city FROM Author A JOIN Publisher P ON A.City = P.city;
+
+--Authors who have the same last name
+SELECT * FROM Author;
+SELECT * FROM Author A INNER JOIN Author B ON A.aulname = B.aulname ;
+
+SELECT A.aufname, A.aulname FROM AUTHOR A INNER JOIN Author B ON A.aulname = B.aulname
+WHERE A.aufname != B.aufname;
+
+--Books wit the same price and publisher
+
+SELECT T.titleID,  T.pubid, T2.pubid, T.price FROM Title T JOIN Title T2  ON (T.pubID = T2.pubID AND T.price = T2.price)
+WHERE T.titleID != T2.titleID;
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

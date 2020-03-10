@@ -1,0 +1,105 @@
+--Lo10 exercise;
+EXPLAIN PLAN SET STATEMENT_ID ='SiliconValley_JOIN_plan' FOR
+SELECT T.TitleID, A.Auid, A.aufName, A.AulName FROM Title T JOIN TitleAuthor TA ON T.titleID = TA.titleID JOIN Author A ON TA.auid = A.auID 
+  WHERE T.title='Secrets of Silicon Valley'; --cost 4
+
+EXPLAIN PLAN SET STATEMENT_ID ='SiliconValley_NESTED_plan' FOR
+SELECT AuFname, AULname FROM AUTHOR  WHERE AUID IN(SELECT auID FROM TitleAuthor WHERE TitleID IN(SELECT titleID FROM Title WHERE Title='Secrets of Silicon Valley'));
+--Cost 5
+
+
+
+--part 2
+EXPLAIN PLAN SET STATEMENT_ID ='Distinct_author_plan' FOR
+SELECT DISTINCT auID FROM TitleAuthor;--cost 2
+--should be faster as only one table is selected
+--vs other approaches should be faster as only one table is selected
+--from (the joining table). One caveat to this is that only auid is
+--available so name was needed you'd need to add another table
+SELECT DISTINCT auID FROM TitleAuthor TA WHERE TA.TitleID IN(SELECT TitleID FROM Title);
+
+SELECT DISTINCT A.auID FROM Author A JOIN TitleAuthor TA ON A.auID = TA.auID JOIN Title T ON TA.titleID = T.titleID;
+
+
+
+--part 3
+EXPLAIN PLAN SET STATEMENT_ID ='ex3_join_4' FOR --cost 10 --still 10 as 3
+SELECT A.auID, P.pubID, A.city, P.city FROM Author A JOIN TitleAuthor TA ON A.auid = TA.auID JOIN Title T ON TA.TitleID = T.TitleID JOIN Publisher P ON t.pubID = P.pubID WHERE (P.city = A.city);
+
+
+EXPLAIN PLAN SET STATEMENT_ID = 'ex3_join_5' FOR --only costs 2 with indexed columns
+SELECT DISTINCT A.City FROM Author A JOIN Publisher P ON A.city = P.city;
+
+EXPLAIN PLAN SET STATEMENT_ID='ex3_Intersect_3' FOR --cost 8 -- still 8 at 3
+SELECT  city FROM AUTHOR
+INTERSECT
+SELECT  city FROM Publisher;
+
+CREATE INDEX author_City_Index ON AUTHOR(City);
+CREATE INDEX pub_city ON Publisher(City);
+
+--3c indexes do not matter to intersects, though they affect joins to some degree
+
+--Ex 4
+EXPLAIN PLAN SET STATEMENT_ID ='ex4_allTitles1' FOR --cost 2
+SELECT * FROM Title ORDER BY Title; --title is indexed
+
+EXPLAIN PLAN SET STATEMENT_ID = 'ex4_allTitles_type1' FOR --cost 4
+SELECT * FROM Title ORDER BY type , title;
+
+EXPLAIN PLAN SET STATEMENT_ID = 'ex4_allTitles_price1' FOR --cost 4
+SELECT * FROM Title Order BY price, type, title;
+
+
+EXPLAIN PLAN SET STATEMENT_ID = 'ex4_join1' FOR --cost 7
+SELECT T.Title, P.PubName FROM Title T JOIN Publisher P ON T.pubID = P.PubID ORDER BY Title;
+
+EXPLAIN PLAN SET STATEMENT_ID = 'ex4_join2' FOR --cost 7
+SELECT T.Title, P.PubName FROM Title T JOIN Publisher P ON T.pubID = P.PubID ORDER BY Pubname;
+
+EXPLAIN PLAN SET STATEMENT_ID = 'ex4_join3' FOR --cost 7
+SELECT T.Title, P.PubName FROM Title T JOIN Publisher P ON T.pubID = P.PubID ORDER BY Title, Pubname;
+
+
+EXPLAIN PLAN SET STATEMENT_ID = 'ex4_join4' FOR --cost 7
+SELECT T.Title, P.PubName FROM Title T JOIN Publisher P ON T.pubID = P.PubID ORDER BY Pubname, Title;
+--they all sort on non-indexed fields, so cost 7
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

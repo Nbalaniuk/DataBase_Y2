@@ -1,0 +1,123 @@
+--Query Optimization
+
+--View existing indexes:
+SELECT * FROM USER_INDEXES;
+
+
+
+--Creating indexes
+CREATE INDEX emp_phone_index ON Employee(Phone);
+--Composite index
+CREATE INDEX emp_dept_name_index ON Employee (department, empName);
+--unique function based index
+CREATE UNIQUE INDEX emp_name_upper ON Employee(UPPER(empname));
+
+--December 10th
+
+--comparing query plans
+--use WHERE instead of getting all rows
+
+EXPLAIN PLAN SET STATEMENT_ID='where1' FOR --if you ever make any changes, change the name to something else
+SELECT * FROM CUSTOMERS;
+
+
+--View the plan table
+SELECT * FROM PLAN_TABLE;
+
+--VS:
+EXPLAIN PLAN SET STATEMENT_ID='where2' FOR --if you ever make any changes, change the name to something else
+SELECT * FROM CUSTOMERS WHERE cnum IN (2001, 2002);
+
+
+--Example 2- join vs multiple queries
+EXPLAIN PLAN SET STATEMENT_ID='join1' FOR
+SELECT cname FROM Customers WHERE cnum = 2004; 
+
+EXPLAIN PLAN SET STATEMENT_ID='join2' FOR
+SELECT onum FROM Orders WHERE cnum = 2004;
+--	Vs
+
+EXPLAIN PLAN SET STATEMENT_ID='join3' FOR
+SELECT onum, cname FROM CUSTOMERS c JOIN Orders o ON c.cnum = o.cnum WHERE c.cnum = 2004;
+
+
+--View the plan table
+SELECT * FROM PLAN_TABLE;
+
+--Using indexes
+EXPLAIN PLAN SET STATEMENT_ID = 'index1' FOR
+SELECT * FROM Customers ORDER BY Cname;
+--add index
+CREATE INDEX Cust_Name_Index ON Customers(CName);
+--DO NOT REUSE PLANS, MAKE A NEW ONE/RENAME IT
+EXPLAIN PLAN SET STATEMENT_ID = 'index2' FOR
+SELECT * FROM Customers ORDER BY Cname;
+
+--desc order
+EXPLAIN PLAN SET STATEMENT_ID = 'index3' FOR
+SELECT * FROM Customers ORDER BY Cname DESC;
+
+
+--Search
+EXPLAIN PLAN SET STATEMENT_ID = 'index4' FOR
+SELECT * FROM Customers WHERE CName LIKE 'G%';
+--search and sort
+EXPLAIN PLAN SET STATEMENT_ID = 'index4sort' FOR
+SELECT * FROM Customers WHERE CName LIKE 'G%' ORDER BY CName;
+
+EXPLAIN PLAN SET STATEMENT_ID = 'index4sort2' FOR
+SELECT * FROM Customers WHERE CName LIKE 'G%' ORDER BY CNum;
+
+
+--Indexes on FKs
+
+EXPLAIN PLAN SET STATEMENT_ID='index5' FOR
+SELECT onum, cname FROM CUSTOMERS c JOIN Orders o ON c.cnum = o.cnum;
+
+--add index on FK
+CREATE INDEX cust_ordre_fk_index ON Orders(cnum);
+
+EXPLAIN PLAN SET STATEMENT_ID='index6' FOR
+SELECT onum, cname FROM CUSTOMERS c JOIN Orders o ON c.cnum = o.cnum;
+
+--Hint is a suggestion to the compliler to change its behavious
+--Add a hint to not use an index:
+EXPLAIN PLAN SET STATEMENT_ID='index7' FOR
+SELECT /*+ NO_INDEX(o cust_order_fk_index)*/onum, cname FROM CUSTOMERS c JOIN Orders o ON c.cnum = o.cnum;
+
+--WHERE Vs HAVING
+EXPLAIN PLAN SET STATEMENT_ID='having1' FOR
+SELECT odate, avg(amt) FROM Orders GROUP BY odate HAVING odate IN ('03-OCT-00', '04-OCT-00');
+
+EXPLAIN PLAN SET STATEMENT_ID='having2' FOR
+SELECT odate, avg(amt) FROM Orders WHERE odate IN ('03-OCT-00', '04-OCT-00') GROUP BY odate;
+
+--EXISTS Vs IN Vs distinct
+EXPLAIN PLAN SET STATEMENT_ID ='exists1' FOR
+SELECT Cnum, Cname FROM Customers c_outer WHERE EXISTS(SELECT * FROM Orders o WHERE o.cnum = c_outer.cnum);
+
+EXPLAIN PLAN SET STATEMENT_ID ='exists2' FOR
+SELECT Cnum, Cname FROM Customers c_outer WHERE CNUM IN(SELECT CNUM FROM Orders o WHERE o.cnum = c_outer.cnum);
+
+--distinct
+EXPLAIN PLAN SET STATEMENT_ID = 'exists3' FOR
+SELECT C.Cnum, C.cname FROM Customers c JOIN Orders o on C.cnum = o.cnum;
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

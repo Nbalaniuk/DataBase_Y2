@@ -1,0 +1,79 @@
+--Single Row functions
+-- we will use the DUAL tabl, which is abuilt in table to get around the fact
+--that the FROM clause is required, so you must always include a table
+
+SELECT * FROM Dual;
+
+SELECT CEIL(6.5) FROM Dual;
+
+SELECT FLOOR(6.5) FROM Dual;
+
+SELECT ROUND(6.5) FROM Dual;
+
+SELECT RPAD(empName, 30) FROM Employee;
+SELECT RPAD (empName,30,'/*') FROM EMPLOYEE;
+SELECT LTRIM('          test          ') FROM DUAL;
+
+SELECT TRIM ('        Test          ') FROM Dual;
+SELECT LTRIM(RTRIM('          TEST             ')) FROM Dual;
+SELECT LTRIM('abababababTestababab','ab') FROM Dual;
+
+
+--Substring starts at 1
+
+SELECT SUBSTR('abcdefghi',4,4) FROM Dual;
+
+
+--date functions
+SELECT SYSDATE FROM Dual;
+SELECT MONTHS_BETWEEN(SYSDATE, '22-OCT-18') FROM Dual;
+
+
+--Convertion functions
+SELECT TO_CHAR(SYSDATE, 'hh:mi:ss am') FROM Dual;
+
+SELECT TO_DATE ('october 22 2019', 'month dd yyyy') FROM Dual;
+
+SELECT TO_NUMBER('one') FROM Dual;--error
+SELECT TO_NUMBER('5.55') FROM DUAL;
+SELECT TO_NUMBER('5.55'), '5.55' AS StringVersion FROM Dual;
+
+
+
+--NULL CONVERSIONs
+SELECT * FROM Title;
+SELECT title, NVL(type, 'Missing Type') AS Type FROM TITLE; --note an alias can use a field name that was already in the table
+
+SELECT Title, COALESCE(price,0) FROM TITLE;
+
+
+--user function
+SELECT USER FROM Dual;
+
+
+
+SELECT * FROM  Customer;
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

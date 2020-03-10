@@ -1,0 +1,161 @@
+--Exceptions
+--Named system exceptions
+--cause a divide by 0
+--DBMS_OUTPUT.PUT_LINE(
+
+DECLARE
+  stockPrice NUMBER := 9.87;
+  earnings NUMBER := 1.0;
+  ratio NUMBER;
+  author_rec author%ROWTYPE;
+  
+  
+BEGIN
+
+  ratio := stockPrice / earnings;
+  DBMS_OUTPUT.PUT_LINE(ratio);
+  --cause a different named exception
+  SELECT * INTO author_rec FROM AUTHOR;
+
+EXCEPTION
+--catch different kinds of exception
+  WHEN ZERO_DIVIDE THEN
+  DBMS_OUTPUT.PUT_LINE('Divide by Zero error' || SQLERRM);
+  
+  WHEN OTHERS THEN
+    DBMS_OUTPUT.PUT_LINE('error occured' ||SQLCODE || ' '||SQLERRM);
+
+END;
+
+
+
+--Unnamed exceptions
+--deleting a parent record that has child records
+SELECT * FROM Publisher;
+
+
+
+DECLARE 
+  
+  child_rec_exception EXCEPTION; -- naming the exception
+  PRAGMA EXCEPTION_INIT(child_rec_exception, -02292); --0 is not needed associated with an error code number
+  
+BEGIN
+  
+  DELETE FROM Publisher WHERE pubid =300;
+   DELETE FROM Publisher WHERE pubid =1389;
+   
+EXCEPTION
+  
+  WHEN child_rec_exception THEN
+    DBMS_OUTPUT.PUT_LINE('Child records exist: '||SQLERRM);
+  WHEN OTHERS THEN
+    DBMS_OUTPUT.PUT_LINE('error');
+END;
+
+--If you have an unhandled exception, it will automatically rollback changes
+--user defined exceptions
+--raise an exception if the qtyshipped is over 50 while processing a cursor
+
+DECLARE
+  
+  large_quantity EXCEPTION;
+  CURSOR sales_quantity IS
+    SELECT title, qtyShipped FROM Title T JOIN SalesDetail S ON T.titleid = S.titleid;
+    
+  upperLimit CONSTANT salesdetail.qtyshipped%TYPE :=50;
+  message VARCHAR2(150);-- this will be available in the exception section
+  
+  
+BEGIN
+  
+  FOR sales_rec IN sales_quantity LOOP
+    IF sales_rec.qtyshipped > upperLimit THEN
+    --often helpful to build a message or store things in variables as these
+    --will be accessible in the exception section below
+      message:= 'The number shipped of '||sales_rec.title || ' exceeds 50';
+        RAISE large_quantity; --Note: could just call RAISE_APP_ERROR  here as well
+    END IF;
+  END LOOP;
+  
+EXCEPTION
+  WHEN large_quantity THEN
+    RAISE_APPLICATION_ERROR(-20001,message); 
+
+END;
+
+
+--Create a block that will ask the user for a state. The block should loop
+--through all authors and editors from that state and write
+--them to a table. (create table seperately).
+--The table has a name field, state field, and a username field (the user who ran the code)
+--if the state does not exist in the table, raise a custom error with number 20100.
+
+DECLARE
+  stateInput CHAR(2):=('&Enter_State_Abbrv');
+  CURSOR AuState_cur IS
+    SELECT aufName||' '||auLName AS AuName, State, USER FROM Author WHERE state = stateInput;
+
+  CURSOR EdState_cur IS
+    SELECT edFName|| ' '||edLName AS EdName, State, USER FROM Editor WHERE state = stateInput;
+    message VARCHAR2(100) := 'The state '||stateInput||' has either no authors/editors in it';
+    NoSuchState EXCEPTION;
+--    PRAGMA EXCEPTION_INIT(NoSuchState, -20100
+BEGIN
+   ---few ways to do this, could execute a SELECT to count authors/editors
+   --or just have a boolena if we go into either of the loops
+   --could also do a union to have just one cursor
+   
+  IF AuState_cur%ROWCOUNT <1 THEN
+    RAISE NoSuchState;
+  END IF;
+  
+  IF EdState_cur%ROWCOUNT <1 THEN
+    RAISE NoSuchState;
+  END IF;
+  
+  FOR Ed_rec IN EdState_cur LOOP
+    INSERT INTO AuthorEditorState VALUES Ed_rec;
+  END LOOP;
+  FOR Au_rec IN AuState_cur LOOP
+    INSERT INTO AuthorEditorState VALUES Au_rec;
+  END LOOP;
+  
+  
+EXCEPTION
+  
+  WHEN NoSuchState THEN
+    RAISE_APPLICATION_ERROR(-20100,'Empty state in database.');
+
+END;
+
+
+CREATE TABLE AuthorEditorState(
+  name VARCHAR2(100),
+  state CHAR(2),
+  username VARCHAR2(100)
+);
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

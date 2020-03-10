@@ -1,0 +1,44 @@
+--Assignment 2 
+--CST203 Nathan Balaniuk
+
+SELECT fName AS 'FirstName', 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

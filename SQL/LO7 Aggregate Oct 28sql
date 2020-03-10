@@ -1,0 +1,79 @@
+
+--Oct 28
+--1
+SELECT COUNT(*) FROM Orders WHERE ORDERDATE = ('03-OCT-2000');
+
+--2
+SELECT  MIN(orderAmount), orderNum FROM Orders GROUP BY OrderNum;
+
+--3
+--min can be used on strings, it grabs the smallest, based on the ASCII table
+SELECT  MIN(cusName) FROM Customers WHERE CUSNAME LIKE 'G%'  ;
+
+--4
+SELECT MAX(cusRating), cuscity FROM Customers GROUP BY cuscity;
+
+--5
+SELECT orderDate ,COUNT(DISTINCT salespersonnum)  FROM orders GROUP BY orderdate;
+
+--6 -- good question for exams
+SELECT 'For the city '||cuscity || ', the highest rating is: ' ||  MAX(cusrating) FROM Customers GROUP BY CUSCITY;
+
+--7
+SELECT cusName, cusRating FROM Customers ORDER BY  (cusRating) DESC, CUSNAME;
+
+--8
+SELECT SUM(orderAmount), orderDate FROM Orders GROUP BY orderDate ORDER BY 1 DESC; -- 1 means position 1 in the select list(SUM(orderAmount)), 2 would be orderDate, etc
+
+--9
+SELECT MAX(commission), salespcity FROM SALESPEOPLE GROUP BY SALESPCITY HAVING COUNT(*)>=2;
+
+--10
+SELECT customerNum, SUM(OrderAmount) FROM Orders GROUP BY customerNum HAVING SUM(ORDERAMOUNT) > 4000;
+
+--11
+SELECT  MAX(COUNT(*)) FROM Orders GROUP BY orderDate ;
+
+
+--12 just use AVG?????
+SELECT orderDate, TO_CHAR(SUM(orderAmount)/COUNT(*),'$999,999.00'), AVG(orderAmount) FROM Orders GROUP BY orderDate;
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

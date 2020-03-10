@@ -1,0 +1,167 @@
+--subqueries 
+--example 0
+--find all the authors that work in the smae city as Livia Kersen
+--steps 
+--find city Livia works in
+SELECT City FROM Author WHERE aulName = 'Karsen' AND aufName = 'Livia';
+--send the name of the city to anoher query to find all the people who work in ;Oakland'
+SELECT * FROM Author WHERE city='Oakland';
+
+--put the 2 together
+SELECT * FROM Author WHERE City = (SELECT City FROM Author WHERE aulName ='Karsen'AND aufName='Livia');
+
+
+--example 1
+--find the names og all publishers that publish business books
+--•	Find the names of all publishers that publish business books.
+--•	Steps:
+--a)	Where is the type of book stored?
+--?	In the type field in the Title table
+--?	now find all the books that are of this type
+SELECT pubID FROM Title WHERE Type='business';
+--b)	Look at the query. What could I use to find out the names of the publishers?
+--c)	Lets create the query to find the publishers names
+SELECT pubName FROM publisher WHERE PUBid IN (SELECT pubID FROM Title WHERE Type='business');
+--d)	Put the 2 together
+
+--e)	Looking at it another way:
+--	SELECT * 
+--	FROM Publisher
+--	WHERE pub_id IN
+--		(SELECT pub_id
+--		FROM Titles
+--		WHERE type = ‘business’);
+--Inner query is independent, gets evaluated first, and passes results to outer query.
+
+
+--•	Example 2: 	
+--•	List the books published by Binnet & Hardley that have a year to date sales of more than $15,000.
+--•	Steps:
+--a)	Need to find Binnet and Hardley's pubID?
+SELECT pubId FROM Publisher WHERE pubName = 'Binnet and Hardley';
+SELECT title, pubID FROM Title WHERE ytdsales > 15000 AND PUBid = (SELECT pubId FROM Publisher WHERE pubName = 'Binnet and Hardley');
+--b)	Now use that in the main query
+--c)	Put the 2 together
+--
+--•	List the books that have a price greater or equal to the price of the book Straight Talk About Computers  - titleID is BU7832.
+--•	Steps:
+--a)	Find "Straight Talk About Computers" price.
+--b)	Find all the books with a price of >= 29.99
+SELECT price FROM Title WHERE title='Straight Talk About Computers';
+SELECT title , price FROM Title WHERE price >= (SELECT price FROM Title WHERE title='Straight Talk About Computers');
+
+--ex 4
+SELECT price FROM Title WHERE title='Straight Talk About Computers';
+
+SELECT title , price FROM Title WHERE price >= 
+(SELECT price FROM Title WHERE titleID=(SELECT titleID FROM Title WHERE title='Straight Talk About Computers'));
+
+--•	List the books that have a price less than the average price of all books.
+--•	Steps:
+--a)	Find the average book price.
+--b)	Find the books with a price less than the average
+--
+SELECT title, price FROM Title WHERE Price < (SELECT AVG(price) FROM Title);
+
+--•	Give the names of the authors that live in states where more than one Author is listed?
+--•	Steps:
+--a)	Find how many Authors are in each state.
+--b)	Find which are greater than 1
+--c)	Get the names of the authors that live in those states
+
+SELECT state FROM Author GROUP BY state HAVING COUNT(*) >1 ;
+
+SELECT aufName,aulName FROM Author WHERE state IN (SELECT state FROM Author GROUP BY state HAVING COUNT(*) >1);
+
+
+
+
+--correlated subqueries
+--just runs everyime for everyrow in the outer query
+SELECT pubName
+	FROM Publisher p
+	WHERE EXISTS
+		(SELECT *
+		FROM Title t
+		WHERE t.pubID = p.pubID 
+			AND type = 'business');
+
+
+
+--Example 2: 	
+--Retrieve the name, publisher ID, and ytdSales, of any book whose ytdSales is above average for that book's publisher. 
+SELECT title, pubid, ytdSales FROM Title WHERE YTDSALES > (SELECT AVG(ytdsales) FROM title); -- this does avg for all the books
+
+SELECT title, pubid, ytdSales FROM Title Touter WHERE YTDSALES  > (SELECT AVG(ytdsales) FROM title Tinner WHERE Tinner.PubID = Touter.pubid);--gets the average for only the rows that match the pubid avg
+
+--Example 3: 	
+--Change the query in Example 2 to display the publisher's name instead of the ID.
+SELECT title, P.pubid, pubname ytdSales FROM Title Touter JOIN Publisher P ON P.pubid = touter.pubid
+  WHERE YTDSALES  > (SELECT AVG(ytdsales) FROM title Tinner WHERE Tinner.PubID = Touter.pubid);--gets the average for only the rows that match the pubid avg
+
+--joins and subqueries
+--//•	Join Example:  Search for the names of publishers located in the same city as an author.  The queries below both perform the same task.  
+SELECT DISTINCT pubName FROM Publisher P JOIN Author A ON p.city = A.city;
+SELECT pubName FROM Publisher WHERE city IN(SELECT city FROM Author);
+
+--what if we wanted pub names and author names? Then we should use a join(need)
+SELECT  pubName, aulname, aufname FROM Publisher P JOIN Author A ON p.city = A.city;
+
+--alternate IN syntax
+SELECT aulName, aufName FROM AUTHOR WHERE (city,state) IN (SELECT city, state FROM editor WHERE edlname = 'DeLongue');
+
+
+--Example: What publishers have published books that cost more than $35.00.
+--1.	What columns do you want to display? pubName, pubID
+--2.	Identify the tables involved. - publisher, title
+--3.	Look at the join conditions and types of joins. -inner join
+--4.	Look at any restrictions on the rows. -- price > 35.00
+--5.	Is there any grouping or ordering required? -- no
+SELECT DISTINCT pubName, P.pubID FROM Publisher P JOIN Title T ON P.pubid = T.pubid WHERE price >35;
+--subquery version
+SELECT  pubName, pubID FROM Publisher WHERE pubID IN (SELECT pubID FROM Title WHERE Price >35);
+
+
+--More Examples:
+--1. What is the name of the book with the highest price?
+--1.	Write inner query first
+--2.	Write outer  query next
+SELECT title FROM Title WHERE price = (SELECT MAX(price) FROM Title );
+
+
+
+--2. Would like to know the names of the books that Eleanore Himmel edited.
+--1.	Identify the tables involved. - title, editor, titleEditor
+--2.	Look at the join conditions and types of joins. Inner
+--3.	Look at any restrictions on the rows. edfName='Eleanore' edlname = 'Himmel'
+--4.	What columns do you want to display? - book title
+--5.	Is there any grouping or ordering required? -no
+
+--
+--As a join:
+SELECT title FROM Title t JOIN TitleEditor TE ON T.titleID = TE.titleID
+                    JOIN Editor E ON E.edid = TE.edid
+                    WHERE edfName='Eleanore' AND edlname = 'Himmel';
+
+
+--As a subquery - start with the inner most subquery
+SELECT Title FROM title WHERE titleID IN(SELECT titleID FROM TitleEditor WHERE edid =(SELECT edid FROM Editor WHERE edfName='Eleanore' AND edlname = 'Himmel'));
+
+
+--
+--Subqueries using the IN operator
+--The result of the inner subquery is a list of zero or more values.
+--Find the names of all second authors who live in California and receive less than 30 percent of the royalties on the books they coauthor.
+--can be done as a join, but this is a subquery
+
+SELECT * FROM TitleAuthor;
+SELECT auid FROM TitleAuthor WHERE (auOrder=2 AND royaltyShare <0.3);
+SELECT aulName,aufName FROM Author WHERE state ='CA' AND auid IN (SELECT auid FROM TitleAuthor WHERE (auOrder=2 AND royaltyShare <0.3));
+
+
+
+
+
+
+
+

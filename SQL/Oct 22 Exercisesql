@@ -1,0 +1,92 @@
+--Oct 22 exercise
+
+SELECT orderNum, ROUND(orderamount), orderdate FROM Orders;
+
+--2
+SELECT * FROM Customer WHERE SALESPERSONNUM = 1001;
+
+--3
+SELECT salespCity AS City,salespname AS SName, salespersonnum AS sNum, commission AS Comm FROM SALEspeople;
+
+--4
+SELECT * FROM salespeople WHERE salespCity = 'London' AND COMMISSION =0.11;
+
+--5
+SELECT * FROM Customers WHERE CusRating >100 OR CUSCITY = 'ROME';
+
+--6
+SELECT * FROM Orders WHERE (orderAmount < 1000 OR NOT (orderDate = TO_DATE('03-OCT-2000', 'DD-MON-YYYY') AND customerNum >2003));
+
+--7
+SELECT * FROM Orders WHERE NOT((orderDate = TO_DATE('03-OCT-2000','DD-MON-YYYY') OR salespersonnum >1006) AND orderAmount >= 1500);
+
+--8
+SELECT * FROM Salespeople WHERE (COMMISSION BETWEEN 0.12 AND 0.14);
+SELECT * FROM Salespeople WHERE commission IS NOT NULL;
+
+--9
+SELECT * FROM Orders WHERE (orderDate = ('03-OCT-2000') OR orderDate = ('04-OCT-2000'));
+SELECT * FROM Orders WHERE OrderDate IN (('03-OCT-2000'), ('04-OCT-2000'));
+
+--10
+SELECT * FROM Customers WHERE (cusName IN '[A-F]');
+SELECT * FROM Customers WHERE CusName >= 'A' AND Cusname <'H';
+
+--11
+SELECT * FROM Customers WHERE (cusName LIKE('C%')OR (cusName LIKE ('c%')));
+--Could also make the first letter uppercase firs, then compare it
+
+--12
+SELECT * FROM Orders WHERE (ORDERAMOUNT IS NOT NULL AND OrderAmount != 0);
+SELECT * FROM Orders WHERE NVL(OrderAmount,0)>0; -- convert nulls to 0's
+
+
+--13
+SELECT customerNum||':'||TRIM(cusName) ||'('|| NVL(cusRating,0)||')' AS CustInfo FROM Customers;
+
+--14
+SELECT TO_CHAR (OrderDate, 'Month YYYY') || ' $'|| orderAmount AS Amount FROM Orders;
+SELECT TRIM(TO_CHAR(OrderDate, 'Month')) ||' '|| TO_CHAR(OrderDate,'YYYY') || ' $ ' ||ORDERAmoutnAS Amount FROM Orders;
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

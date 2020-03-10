@@ -1,0 +1,66 @@
+--Oct 21
+--LO6 exercise 2
+UPDATE Project SET maxHours =300 WHERE department = 'Finance';
+
+UPDATE Project SET maxHours = maxHours-25 WHERE maxHours >=140;
+
+UPDATE Employee SET phone = 285-1234 WHERE empName ='James Nestor';
+
+UPDATE Employee SET department = 'Finance' WHERE empName = 'Richard Wu';
+
+UPDATE Assignment SET hoursWorked = 8.5 WHERE empNumber = 600;
+
+UPDATE Assignment SET projectid =1400 WHERE empnumber =400 AND projectid =1200;
+
+UPDATE Project SET maxHours = maxHours*0.75;
+
+CREATE TABLE EmpContactMarketing AS SELECT empName, phone FROM employee WHERE department = 'Marketing';
+
+DELETE FROM Assignment WHERE empNumber = 300;
+DELETE FROM Employee CASCADE WHERE empName = 'Heather Jones' ;
+
+--Part 2 - sequences
+CREATE SEQUENCE ex2Sequence START WITH 100 INCREMENT BY -25 MINVALUE 0 MAXVALUE 200 CYCLE NOCACHE;
+
+CREATE SEQUENCE keySequence START WITH 1 INCREMENT BY 1;
+
+CREATE TABLE ex2Table(
+  num1 NUMBER(3) CONSTRAINT ex2Table_num1_pk PRIMARY KEY,
+  num2 NUMBER(3)
+);
+
+INSERT INTO ex2Table VALUES(keySequence.NEXTVAL, ex2Sequence.NEXTVAL);
+SELECT * FROM ex2Table;
+
+DROP TABLE ex2Table;
+DROP SEQUENCE ex2Sequence;
+DROP SEQUENCE keySequence;
+
+ROLLBACK;
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

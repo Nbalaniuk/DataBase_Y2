@@ -1,0 +1,78 @@
+
+
+SELECT SUM(Price) FROM TITLE;
+
+SELECT SUM(Price), AVG(Price), MAX(Price) FROM Title;
+
+--Can format numbers from aggregate
+SELECT TO_CHAR(AVG(Price), '$999,999.99') FROM TITLE;
+
+SELECT ROUND(AVG(Price),1) FROM Title;
+
+--Cannot include non group fields in the select list
+SELECT Title, SUM(Price) FROM TITLE;
+
+
+--Different types of count
+SELECT COUNT(Price) FROM Title; --gnoreging nulls, counts all others (including duplicates)
+SELECT COUNT(*) FROM Title;-- counts all rows, includes nulls
+SELECT Count(DISTINCT Price)FROM Title; --coutnunique values, ignores nulls
+SELECT Count(DISTINCT NVL(Price,0))FROM Title; --coutnunique values, ignores nulls which are counted as zero vlues
+SELECT Count(NVL(Price,0))FROM Title; --Count all values, nulls represent, really the same as COUNT(*)
+
+--AVGS and Nulls
+SELECT AVG(price) FROM Title;
+SELECT AVG(NVL(price,0)) FROM Title;
+
+--GROUP BY and HAVING
+SELECT type, AVG(price) FROM Title GROUP BY type;
+--SELECT title, type AVG(price) FROM Title GROUP BY Type -- wont owkr; 
+
+
+--group by vs distinct
+SELECT pubID FROM Title GROUP BY pubID;
+SELECT DISTINCT pubID FROM Title; -- same values
+SELECT DISTINCT pubID, AVG(Price) FROM Title;-- once aggregate are added, distinct will not be sufficient - it does not create groups, just removes duplicates
+
+
+--count all authors in each city and state. Display city state and the count
+SELECT COUNT(*), City, state FROM Author GROUP BY City, state;
+SELECT COUNT(*), City, state FROM Author GROUP BY state, city; -- same results: unique combinations of values for city/state are used to create the groups
+SELECT COUNT(*), City, state FROM Author GROUP BY City, state ORDER BY state, city;
+SELECT COUNT(*), City, state FROM Author GROUP BY City, state ORDER BY city, state; -- the order of the order by clause does matter
+
+
+
+--HAVING CLUASE
+
+SELECT COUNT(*), City, state FROM Author WHERE COUNT(*) >1 GROUP BY City, state ; -- cannot do this
+
+SELECT COUNT(*), City, state FROM Author GROUP BY City, state HAVING COUNT(*) >1;
+SELECT COUNT(*), City, state FROM Author GROUP BY City, state HAVING COUNT(*) >1 AND State = 'CA'; -- the single row Criteria, should be in the whrere clause
+--same as above but 'proper'
+SELECT COUNT(*), City, state FROM Author WHERE state = 'CA' GROUP BY City, state HAVING COUNT(*) >1;
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

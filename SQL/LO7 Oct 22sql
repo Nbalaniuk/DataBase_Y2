@@ -1,0 +1,108 @@
+--LO7 SELECT STATEMENTS
+
+--basic select
+
+SELECT * FROM Project;
+
+SELECT maxHours, prjName FROM Project;
+SELECT DISTINCT department FROM Project; -- distinct grabs non similair values only( unique results only)
+--vs
+SELECT DISTINCT department, maxHours FROM Project; -- removes rows that are exatcly the same
+
+
+--Simple where clauses
+
+--all finance projects
+SELECT * FROM Project WHERE department = 'Finance';
+
+SELECT * FROM Project WHERE department = 'Finance' AND maxHours >100;
+
+--show all employees from Acoutnting, Marketing, or Finance Departments
+SELECT * FROM Employee WHERE department ='Marketing' OR department = 'Accounting' OR department = 'Finance';
+SELECT * FROM Employee WHERE department IN ('Accounting','Marketing','Finance'); -- WHERE department is in the list
+
+--Between range operators
+
+SELECT empName, empNumber, department FROM Employee WHERE empNumber BETWEEN 200 AND 500;
+
+--Like matches a pattern
+
+SELECT * FROM Project WHERE prjName LIKE 'Q_ Portfolio Analysis';
+SELECT * FROM Employee WHERE phone LIKE '285-____';
+SELECT * FROM Employee WHERE phone NOT LIKE '285-%';--note the null is ignored
+SELECT * FROM Employee;
+
+--Nulls
+SELECT * FROM Employee WHERE phone IS NULL;
+SELECT * FROM Employee WHERE phone IS NOT NULL;
+SELECT * FROM Employee WHERE phone IS NULL OR phone NOT LIKE '285-%';
+
+--expression in select list
+SELECT projectID, maxHours, maxHours *1.1 FROM Project;
+--add an alias
+SELECT projectID, maxHours, maxHours *1.1 AS "Proposed Maximum" FROM Project ;
+
+--Create a query that will show empNames, departments, in the form:
+--Name: Department
+-- James Nestor: Accounting
+--That should be the only field and it should be titled employeeInfo
+SELECT empName||':'||department AS "EmployeeInfo" FROM Employee;
+
+
+
+
+--Sorting
+SELECT empName, department FROM Employee ORDER BY department;
+SELECT empName, department FROM Employee ORDER BY department, empName DESC;
+SELECT empName, department FROM Employee ORDER BY empname, department; -- produces meaninless results order i ORDER BY clause matters
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

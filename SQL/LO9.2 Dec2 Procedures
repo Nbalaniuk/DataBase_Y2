@@ -1,0 +1,109 @@
+--LO9.2
+--Create a procedure to write out the titles tables data
+
+CREATE OR REPLACE PROCEDURE title_details_proc 
+IS
+  CURSOR Title_cur IS
+    SELECT title,price FROM Title;
+BEGIN
+
+  FOR title_rec IN title_cur LOOP
+    
+    DBMS_OUTPUT.PUT_LINE(title_rec.title||' '||title_rec.price);
+    
+  END LOOP;
+
+
+
+END;
+
+
+EXECUTE title_details_proc;
+
+--Create a procedure that will create a new title. The parameters will be titleid, title, type
+--The  procedure will verify that the type entered is already in the table at least once.
+--If true, the record will be inserted into the table
+--otherwise throw an error
+
+CREATE OR REPLACE PROCEDURE NewTitle (titleid_in title.titleid%TYPE, title_in VARCHAR2, type_in VARCHAR2)--either %TYPE or explicit type works
+IS
+  countTypes NUMBER;
+--  CURSOR titles_cur IS
+--    SELECT * FROM Title WHERE type=type_in;
+
+BEGIN
+  --from in class
+  SELECT COUNT(type) INTO countTypes FROM Title WHERE trim(type) = type_in;
+  IF countTypes > 0 THEN
+    INSERT INTO Title(titleid, title, contract, type) VALUES (titleid_in, title_in, '1', type_in);
+  ELSE
+    RAISE_APPLICATION_ERROR(-20001, 'Invalid Type: '||type_in);
+  END IF;
+  --mine
+--  IF titles_cur%ROWCOUNT <1 THEN
+--  
+--    RAISE_APPLICATION_ERROR(-20100,'No such type in db');
+--  
+--  ELSIF titles_cur%ROWCOUNT >0 THEN
+--    INSERT INTO Title (titleID, title, Contract) VALUES (titleid_in, title_in, 'x');
+--  END IF;
+  
+  
+END;
+
+DESC title;
+
+
+EXECUTE NewTitle('newTitleTest','New Title', 'Mystery');
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

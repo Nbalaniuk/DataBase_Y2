@@ -1,0 +1,117 @@
+--Practice for midterm
+
+CREATE TABLE Major2(
+  majorID NUMBER(5) CONSTRAINT major2_majorid_nn NOT NULL
+                    CONSTRAINT major2_majorid_pk PRIMARY KEY
+);
+
+
+
+CREATE TABLE Department2(
+  deptID Number(2) CONSTRAINT department2_deptid_pk PRIMARY KEY,
+  name VARCHAR2(25),
+  deptHead NUMBER(3) --CONSTRAINT department_deptHead_fk REFERENCES Faculty(facultyID)
+);
+
+CREATE TABLE Room_Categories2(
+  roomType CHAR(1) CONSTRAINT room_categories2_roomtype_pk PRIMARY KEY,
+  description VARCHAR2(9)
+);
+
+CREATE TABLE Room2(
+  roomID NUMBER(2) CONSTRAINT room2_roomid_pk PRIMARY KEY,
+  building VARCHAR2(7),
+  roomNo NUMBER(3),
+  capacity NUMBER(2) CONSTRAINT room2_capacity_cc CHECK (capacity > 0),
+  roomType CHAR(1) CONSTRAINT room2_roomtype_fk REFERENCES Room_categories2(roomType)
+);
+
+CREATE TABLE Course2(
+  courseID CHAR(6) CONSTRAINT Course2_courseid_pk PRIMARY KEY,
+  title VARCHAR2(25),
+  credits NUMBER(1) DEFAULT(3) CONSTRAINT course2_credits_cc CHECK(credits >= 0) 
+                      
+);
+
+CREATE TABLE Term2(
+  TermID CHAR(4) CONSTRAINT term2_termid_pk PRIMARY KEY,
+  description VARCHAR2(15),
+  startDate DATE,
+  endDate Date
+);
+
+CREATE TABLE faculty2(
+  facultyid NUMBER(3) CONSTRAINT faculty2_facultyid_pk PRIMARY KEY,
+  firstName VARCHAR2(10),
+  lastName VARCHAR2(10),
+  phone NUMBER(3),
+  roomID NUMBER(2) CONSTRAINT faculty2_roomid_fk REFERENCES Room2(roomid),
+  deptID NUMBER(1) CONSTRAINT faculty2_deptID_fk REFERENCES Department(deptID)
+);
+
+CREATE TABLE Section2(
+  sectionID NUMBER(4) CONSTRAINT section2_sectionid_pk PRIMARY KEY,
+  sectionNumber NUMBER(2),
+  day CHAR(2) CONSTRAINT section2_day_cc CHECK(day='MW' OR day='TR' OR day='F'),
+  startTime Date,
+  endTime Date,
+  capacity NUMBER(2) CONSTRAINT section2_capacity_cc CHECK (capacity >= 0),
+  actualEnrollment NUMBER(2) CONSTRAINT section2_actualEnrollment_cc CHECK (actualEnrollment >=0),
+  courseID CHAR(4) CONSTRAINT section2_courseID_fk REFERENCES Course(courseID),
+  termID CHAR(6) CONSTRAINT section2_termid_fk REFERENCES Term(termid),
+  facultyID NUMBER(3) CONSTRAINT section2_facultyid_fk REFERENCES Faculty(facultyid),
+  roomID NUMBER(2) CONSTRAINT section2_roomID_fk REFERENCES Room(roomid)
+);
+
+ALTER TABLE Department2 ADD CONSTRAINT  deptarment_deptHead_fk 
+  FOREIGN KEY(deptHead) REFERENCES Faculty2(facultyid);
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

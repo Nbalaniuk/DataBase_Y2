@@ -1,0 +1,112 @@
+--Records
+DECLARE 
+
+  --declare some records
+  TYPE rec1_type IS RECORD (field1 VARCHAR2(16), field2 NUMBER, field3 DATE);
+  TYPE rec2_type IS RECORD (id INTEGER NOT NULL := -1, name VARCHAR2(64) NOT NULL := 'anon');
+  TYPE rec3_type IS RECORD (first_name author.aufname%TYPE, last_name author.aulname%TYPE);
+  --declare some variables from records
+  rec1 rec1_type;
+  rec2 rec2_type;
+  rec3 rec3_type;
+  --variable that copies the record type structure from editor
+  rec4 editor%ROWTYPE; --most common thing to do
+  
+  
+  
+BEGIN
+  
+  --write to the records
+  rec1.field1 := 'yestreday';
+  rec1.field2 := '100';
+  rec1.field3 := SYSDATE -1;
+  
+  SELECT aufname, aulname INTO rec3.first_name, rec3.last_name FROM Author WHERE rownum <2;
+  
+  SELECT * INTO rec4 FROM Editor WHERE rowNum <2;
+  
+  --outuput
+  
+  DBMS_OUTPUT.PUT_LINE('rec1: '|| rec1.field3);
+  DBMS_OUTPUT.PUT_LINE('rec2: '|| rec2.name);
+  DBMS_OUTPUT.PUT_LINE('rec1: '|| rec3.first_name || ' '|| rec3.last_name);
+  DBMS_OUTPUT.PUT_LINE('rec1: '|| rec4.edlname);
+  
+END;
+  
+
+
+--add a new record to a new table
+
+
+DECLARE
+
+  publisher_rec publisher%ROWTYPE;
+
+BEGIN
+
+  --config the data in the new record
+    publisher_rec.pubid :=300;
+    publisher_rec.pubname := 'Saskpoly';
+    publisher_rec.address := '123 bob street';
+    publisher_rec.state := 'SK';
+    
+    --insert using the record shorthand ( can use the more verboose form of insert, with values list)
+    INSERT INTO Publisher VALUES publisher_rec;
+
+END;
+  
+SELECT * FROM Publisher;
+  
+  
+--using a record to update a table
+
+DECLARE
+
+  publisher_rec publisher%ROWTYPE;
+
+BEGIN
+
+  --config the data in the new record
+    publisher_rec.pubid :=300;
+    publisher_rec.pubname := 'Saskpoly';
+    publisher_rec.address := '123 bob street';
+    publisher_rec.city := 'Regina';
+    publisher_rec.state := 'SK';
+    
+    --update using the record shorthand ( can use the more verboose form of update, with set list)
+    UPDATE Publisher SET ROW = publisher_rec WHERE pubID = publisher_rec.pubid;
+
+END;
+  
+  
+  
+--Implicit cursors
+
+DECLARE
+
+  rowsAffected NUMBER;
+
+BEGIN
+
+  --run sql to make a change
+  UPDATE Title SET Price = Price + 100 WHERE Price < 100;
+  --check to see if any rows were affected
+  IF SQL%NOTFOUND THEN
+    DBMS_OUTPUT.PUT_LINE('None of the books were updated');
+  ELSE
+    rowsAffected:= SQL%ROWCOUNT; -- how many were changed
+     DBMS_OUTPUT.PUT_LINE('Prices for '||rowsAffected|| ' have changed');
+  END IF;
+
+END;
+  
+  
+  
+  SELECT * FROM Title;
+  
+  
+  
+  
+  
+  

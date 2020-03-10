@@ -1,0 +1,213 @@
+--Final review for CDBM 280
+--1.	Make a report using an anonymous code block.
+--a.	Have the report print out each publisher name
+--b.	For each publisher:
+--i.	print out the name of the books published, the books’ id, and their price
+--ii.	print out the total price for all the books combined for the publisher.
+SELECT * FROM Title; --doing this so it counts as a .sql page or some shit
+DESCRIBE Publisher;
+
+DECLARE
+  CURSOR pub_cur IS
+    SELECT DISTINCT PubName, pubID FROM PUBLISHER;
+  TotalPrice NUMBER := 0; --total price for books  
+  --pubID  CHAR(4);
+BEGIN
+  FOR pub_rec IN pub_cur LOOP
+    DBMS_OUTPUT.PUT_LINE(pub_rec.PubName);
+    --DBMS_OUTPUT.PUT_LINE(pub_rec.Address);
+    DBMS_OUTPUT.PUT_LINE('----------------------------------------');
+    DECLARE--second block
+    CURSOR book_cur IS
+      SELECT titleID, title, Price FROM Title T WHERE T.pubId = pub_rec.pubID;
+    BEGIN
+      FOR book_rec IN book_cur LOOP
+        DBMS_OUTPUT.PUT_LINE('BOOK:'|| book_rec.titleID||' '|| book_rec.title|| ' '||book_rec.price);
+        TotalPrice := TotalPrice + book_rec.price;
+      END LOOP;
+      DBMS_OUTPUT.PUT_LINE('Total Price for all books: '||totalPrice);
+    END;--end of nested block
+  DBMS_OUTPUT.PUT_LINE('');
+  TotalPrice :=0; --reset total price 
+  END LOOP;
+END;
+
+
+
+--Part 2
+--2.	Create a procedure
+--a.	pass in a first name and a last name of an editor
+--b.	If the editor already exists print  the editor’s id
+--c.	Otherwise insert the editor into the database.
+CREATE OR REPLACE PROCEDURE exercise2(firstName_in VARCHAR, lastName_in VARCHAR) IS
+  edid_rec  editor%ROWTYPE; --record that gets all row
+  edidNum  NUMBER;--default num to set unknow editor to
+BEGIN
+   SELECT  * INTO edid_rec FROM editor WHERE (edfName=firstName_in AND edlName = lastName_in);--fill reocrd
+  IF( LENGTH(edid_rec.edid) >1) THEN --if length > 1 then it exists
+      DBMS_OUTPUT.PUT_LINE(edid_rec.edid);--output the id
+  END IF;
+EXCEPTION
+  WHEN NO_DATA_FOUND THEN--if nothing found
+    edidNum := '9999';--set id
+    INSERT INTO Editor (edid,edfName, edlname) VALUES(edidNum,firstName_in, lastName_in);--insert into table
+  WHEN OTHERS THEN RAISE;  
+END;
+
+
+EXECUTE exercise2('Bob', 'Dylan');
+DESCRIBE Editor;
+SELECT * FROM Editor;
+describe title;
+
+--exercise 3
+CREATE OR REPLACE FUNCTION exercise3 (fname_in VARCHAR, lname_IN VARCHAR) RETURN NUMBER
+IS
+  edid NUMBER;
+  CURSOR ed_cur  IS
+    SELECT DISTINCT edid FROM EDITOR WHERE (edfName =fName_in AND edlName = lName_in);
+BEGIN
+  OPEN ed_cur;--open cursor
+  FETCH ed_cur into edid;--fetch the first row into variable 
+  IF(ed_cur%NOTFOUND) THEN
+  --SELECT CAST(8888 AS CHAR(11))FROM dual;
+      edid := 8888;
+  END IF;  
+  return edid;
+END;
+
+Declare
+  enum number;
+begin
+  enum := exercise3('sasdfasf', 'adfsaf');
+  dbms_output.put_line('id number: ' || enum);
+End;
+
+
+--Exercise 4
+CREATE OR REPLACE TRIGGER exercise4
+AFTER INSERT OR UPDATE OF price OR UPDATE OF title OR DELETE ON Title
+FOR EACH ROW
+DECLARE
+BEGIN--Mine
+  IF(INSERTING)THEN
+    dbms_output.put_line('inserted row');
+  END IF;
+  IF(DELETING) THEN
+    dbms_output.put_line('deleted row');
+  END IF;
+   dbms_output.put_line(:old.price);
+  IF(UPDATING) THEN
+  dbms_output.put_line(:old.price || ' '||:new.price);
+    IF(UPDATING('price')) THEN --price changed
+      dbms_output.put_line('price changed');
+    END IF;
+     IF(:old.title != :new.title) THEN --price changed
+      dbms_output.put_line('title changed');
+    END IF;
+  END IF;
+  dbms_output.put_line(:new.price);
+END;
+
+insert into title values('TL9999','My book', 'science', '0736',300, 40000,30000,1,'some notes', sysdate);
+
+
+
+
+update title set title='My second book' where titleid='TL9999';
+
+delete from title where titleid='TL9999';
+
+--One from solutions
+CREATE OR REPLACE TRIGGER TitleTrig
+  BEFORE
+    INSERT OR
+    UPDATE OF price, title OR
+    DELETE
+  ON Title
+BEGIN
+  CASE
+    WHEN INSERTING THEN
+      DBMS_OUTPUT.PUT_LINE('Inserting');
+    WHEN UPDATING('price') THEN
+      DBMS_OUTPUT.PUT_LINE('Updating price');
+    WHEN UPDATING('title') THEN
+      DBMS_OUTPUT.PUT_LINE('Updating title');
+    WHEN DELETING THEN
+      DBMS_OUTPUT.PUT_LINE('Deleting');
+  END CASE;
+END;
+
+
+--JOINS SETS AND SUBQUERIES PRACTICE
+--	Create a query to show a list of employees’ names, what projects they’ve worked on (project names), and each instance of them working on those projects (date, hours worked). This will be used for payroll.
+--part1
+SELECT E.fName ||' '||E.lName AS Name , P.projName, W.Dateworked, W.hoursworked FROM A3.Employee E 
+  JOIN A3.WorksOn W ON E.empNo = W.empNO 
+  JOIN A3.Project P ON P.projNo = W.projNo;
+
+---	Some employees haven’t been entering their time right! Their manager should be contacted so that they can be “coached” to avoid this in the future.
+--Find the employees who have null entries in the workson table under hoursworked and list their names, dept , manager, and manager’s phone number. List each employee only once. 
+--part 2
+SELECT DISTINCT E.fName||' '||E.lName AS Name, DeptName, 
+  (SELECT M.fName||' '||M.lName AS Manager FROM A3.Employee M  JOIN A3.Department Din1 ON M.DeptNo = Din1.DeptNo WHERE (Din1.mgrempNo = M.empNo) ) AS ManagerInfo,
+  (SELECT M.phone FROM A3.Employee M  JOIN A3.Department Din ON M.DeptNo = Din.DeptNo WHERE (D.mgrempNo = M.empNo) ) AS ManagerPhone
+  FROM  A3.Employee E JOIN A3.WorksOn W ON E.empNo = W.empNo JOIN A3.Department D ON E.deptNo = D.deptNo WHERE W.HoursWorked IS NULL;
+
+--Select managers phone
+SELECT M.Phone, M.fName||' '||M.lName AS Manager FROM A3.Employee M  JOIN A3.Department D ON M.DeptNo = D.DeptNo WHERE (M.empNo = D.mgrEmpNo) ;
+SELECT M.fName||' '||M.lName AS Manager FROM A3.Employee M  JOIN A3.Department D ON M.DeptNo = D.DeptNo WHERE (D.mgrempNo = M.empNo);
+
+--Solution
+---	Some employees haven’t been entering their time right! Their manager should be 
+--contacted so that they can be “coached” to avoid this in the future.
+--Find the employees who have null entries in the workson table under hoursworked and 
+--list their names, dept , manager, and manager’s phone number. List each employee only once. 
+SELECT DISTINCT E.fname||' '||E.lName as Name, E.DeptNo, M.FName||' '||M.lName AS Manager, m.Phone 
+  FROM A3.WorksOn W JOIN A3.Employee E ON W.empNo = E.empNo
+  JOIN A3.Department D ON E.deptNo = D.deptNo
+  JOIN A3.Employee M ON D.mgrEmpNo = M.empNo 
+  WHERE W.hoursWorked IS NULL;
+
+
+--Part 3
+---	Determine which employee has worked the most total hours between Nov 1st and Nov 10th 
+--inclusive and the employee which has worked the least total hours for that date range. For output show Employee Name, Total Hours, and either “Most Hours” or “Least Hours”.
+--Max hours
+SELECT DISTINCT E.fName, E.lName AS name,SUM(W.hoursWorked) AS total, 'MaxWorked' AS Status FROM A3.Employee E JOIN A3.WorksOn W ON E.empNo = W.empNo 
+  WHERE (W.dateWorked BETWEEN '01-NOV-10' AND '10-NOV-10'  ) GROUP BY E.fname, E.lName HAVING SUM(W.hoursWorked) = (SELECT MAX(SUM(hoursWorked)) FROM A3.WorksOn
+  WHERE (dateWorked BETWEEN '01-NOV-10' AND '10-NOV-10'  ) GROUP BY empNo)
+UNION
+SELECT DISTINCT E.fName, E.lName AS name,SUM(W.hoursWorked) AS total, 'MinWorked' AS Status FROM A3.Employee E JOIN A3.WorksOn W ON E.empNo = W.empNo 
+  WHERE (W.dateWorked BETWEEN '01-NOV-10' AND '10-NOV-10'  ) GROUP BY E.fname, E.lName HAVING SUM(W.hoursWorked) = (SELECT MIN(SUM(hoursWorked)) FROM A3.WorksOn
+  WHERE (dateWorked BETWEEN '01-NOV-10' AND '10-NOV-10'  ) GROUP BY empNo);
+
+SELECT * FROM A3.WorksOn;
+
+
+--Part 4 exercise 2
+--gets eariliest DOB for all departments
+SELECT DISTINCT MIN(DOB) FROM A3.Employee GROUP BY DeptNo;
+SELECT fName, Lname, DOB FROM A3.Employee WHERE DOB IN(SELECT DISTINCT MIN(DOB) FROM A3.Employee GROUP BY DeptNo);
+
+
+--Part 5 Exercise 2
+SELECT fName, lName FROM A3.Employee ORDER BY fName;
+--all people with name shared between more than 1 person
+SELECT fName FROM A3.Employee GROUP BY fName HAVING COUNT(*) >1;
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

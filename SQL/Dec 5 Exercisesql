@@ -1,0 +1,120 @@
+--exercises part 1
+CREATE OR REPLACE TRIGGER exercise_one_trigger
+  AFTER INSERT OR DELETE ON SalesDetail
+  FOR EACH ROW
+BEGIN
+  
+  IF INSERTING THEN
+    
+    UPDATE Title SET ytdSales = ytdSales +  :NEW.qtyOrdered WHERE Title.Titleid = :NEW.titleID;
+    
+  END IF;
+  
+  
+  IF DELETING THEN
+    
+    UPDATE Title SET ytdSales = ytdSales  + :OLD.qtyOrdered WHERE Title.Titleid = :NEW.titleID;
+    
+  END IF;
+  
+END;
+  
+INSERT INTO SalesDetail (QTYORDERED, titleID, soNum) VALUES(10000,'PS7777',14);
+SELECT * FROM Title WHERE TitleID = 'PS7777';
+DESC SalesDetail;
+
+
+CREATE OR REPLACE TRIGGER exercise_two_trigger
+  BEFORE INSERT ON RoySched
+  FOR EACH ROW
+BEGIN
+  
+  IF :NEW.loRange < hiRange AND :NEW.hiRange < :OLD.loRange THEN
+    RAISE_APPLICATION_ERROR(-20952, 'Range overlaps existing range');
+  END IF;
+  
+  
+END;
+
+INSERT INTO Roysched (loRange, hiRange, royalty, titleID) VALUES (10000, 500000, 0.10,'PC8888');
+
+
+
+SELECT * FROM RoySched;
+
+--exercise 3
+CREATE OR REPLACE VIEW TitleAuthor_View AS
+  SELECT * FROM TitleAuthor;
+
+CREATE OR REPLACE TRIGGER exercise_three_trigger INSTEAD OF INSERT ON titleAuthor_view FOR EACH ROW
+DECLARE
+  countAuthors NUMBER;
+BEGIN
+  SELECT COUNT(auid) INTO CountAuthors FROM TitleAuthor WHERE titleid = :new.titleid;
+  INSERT INTO titleAuthor VALUES (:new.auid, :new.titleid, (coountAuthors+1), 1 / (countAuthors+1);
+  UPDATE titleAuthor SET royaltyshare = 1/(countAuthors +1) WHERE Titleid = :new.titleid;
+END;  
+
+  
+
+--Solution from class
+
+
+
+--2
+CREATE OR REPLACE TRIGGER RoySchedBefIValidateRange
+  BEFORE INSERT ON RoySched
+  FOR EACH ROW
+DECLARE
+  vCount BINARY_INTEGER;
+BEGIN
+  SELECT COUNT(*) INTO vCount FROM RoySched
+    WHERE titleID = :NEW.titleID
+    AND :NEW.loRange <= hiRange
+    AND :NEW.hiRange >= loRange;
+  IF vCount > 0 THEN
+    RAISE_APPLICATION_ERROR(-20952, 'Range overlaps existing range: ' ||
+        :NEW.loRange || ', ' || :NEW.hiRange);
+  END IF;
+END;
+
+
+-- Test it out - valid
+INSERT INTO RoySched VALUES ('BU1032', 50001, 99999, .16);
+-- Test it out - invalid
+INSERT INTO RoySched VALUES ('BU1032', 50, 500, .16);
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

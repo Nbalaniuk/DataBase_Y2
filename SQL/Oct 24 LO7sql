@@ -1,0 +1,29 @@
+
+--Aggregate Functions
+SELECT * FROM Title;
+
+SELECT SUM(Price) FROM Title;
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

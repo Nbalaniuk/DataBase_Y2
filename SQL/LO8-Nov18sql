@@ -1,0 +1,277 @@
+--LO8 VIEWS
+
+--Create a query that displays author name(aulName, aufname) and the books they write (titleid, title)
+--for author who live in oakland CA
+
+SELECT A.aufName, A.aulName, T.titleID,T.title FROM Author A  JOIN TitleAuthor TA ON A.auID = TA.auID
+  JOIN Title T ON TA.titleID = T.TitleID WHERE (city='Oakland' AND state='CA');
+
+--CREATEA A VIEW
+CREATE OR REPLACE VIEW Oaklander AS 
+SELECT A.aufName, A.aulName, T.titleID,T.title FROM Author A  JOIN TitleAuthor TA ON A.auID = TA.auID
+  JOIN Title T ON TA.titleID = T.TitleID WHERE (city='Oakland' AND state='CA');
+
+--Use the view:
+SELECT * FROM Oaklander;
+SELECT * FROM Oaklander ORDER BY Title;
+--author name with multiple books
+SELECT aulName from Oaklander GROUP BY aulName HAVING COUNT(*) > 1;
+
+--Another View;
+CREATE OR REPLACE VIEW HiPrice AS
+SELECT title, price FROM title WHERE Price > 15 AND Advance > 5000;
+
+--use view
+SELECT * FROM HiPrice;
+
+--Change will make it so the row cannot be seen anyumore
+UPDATE HiPrice SET Price =10 WHERE Price = 40;
+
+
+--Add check option to prevent changes from 'hidind' rows from the views
+CREATE OR REPLACE VIEW HiPrice AS
+SELECT title, price FROM title WHERE Price > 15 AND Advance > 5000
+WITH CHECK OPTION;
+
+--Now causes error
+UPDATE HiPrice SET Price =10 WHERE Price = 17;
+
+--Deleting Views
+--dropping views DOES NOT DELETE DATA
+--JUST DELETE THE Named Query
+DROP VIEW Oaklander;
+DROP VIEW HiPrice;
+
+
+
+
+--Updateabibility of views
+CREATE OR REPLACE VIEW RoyaltyAmt AS
+  SELECT a.auid, aulname, royaltyshare,t.titleid, title, price, lorange, hirange, royalty, 
+  royalty * royaltyshare * price AS royaltyAmount
+  FROM Author a JOIN TitleAuthor TA on a.auid = TA.auid JOIN Title T ON TA.titleid = t.titleID
+  JOIN RoySched R on T.titleid = r.titleid;
+  
+  --Can we makes changes on this?
+SELECT * FROM RoyaltyAmt; 
+  
+DELETE FROM RoyaltyAmt; --does not work
+UPDATE RoyaltyAmt SET loRange = 0;
+--The issue is we have 2 child tables, which makes the view unable to be updated
+
+
+--Anoter example
+CREATE OR REPLACE VIEW PubInfo AS
+SELECT pubName, p.pubid, SUM(ytdsales) AS TotalYTD FROM Publisher P JOIN Title T ON P.pubID = T.pubID GROUP BY pubName, P.PUBID;
+
+SELECT * FROM PubInfo;
+
+UPDATE PubInfo SET PubName = 'AAAA';
+DELETE FROM PubInfo; -- both do not work - there is grouping / aggregate in the view
+
+--Views on views
+CREATE OR REPLACE VIEW v1 AS
+SELECT aulName, aufName, phone FROM Author WHERE zip LIKE '94%';
+
+SELECT * FROM V1;
+--Is this view updatable? Yes- just one table, it is key preserved ( no grouping etc)
+--What can we do with it?
+
+--Insert
+INSERT INTO v1 VALUES ('Anderson' , 'MR', '123-123-1234');
+--Missing some of the not null / pk fields in the view, cannot insert
+
+--update
+UPDATE V1 SET AulName = 'Anderson', auFname = 'Mr' WHERE aulName = 'Bennet';
+Rollback;
+--Updates function on all columns
+
+--delete
+DELETE FROM V1;
+--trying to do the delete, but runs into an integrity constraint
+--works but, integrity constraint prevents deleting parent rows with child rows.
+
+--Add another layer
+CREATE OR REPLACE VIEW V2 AS
+SELECT aulName,phone FROM V1 WHERE aulName > 'M';--the where claues build upon each other
+--v1 can only see certain things
+--so v2 can only see ATMOST, the same things as v1
+--but if it has a where clause, it sees less
+
+SELECT * FROM Author;
+SELECT * FROM v2;
+
+--Updateable, YES - still one table which is key preserved - no repetition, grouping
+DELETE FROM V2;
+--Update works, but only on the columns the view can see in the key preseved table
+
+--Add one more layer
+CREATE OR REPLACE VIEW V3 AS
+SELECT aulname, phone FROM V2 WHERE aulName = 'MacFeather';
+
+SELECT * FROM v3;
+--what happens if we change the definition of V2?
+CREATE OR REPLACE VIEW V2 AS
+SELECT aulName, phone FROM v1 WHERE aulName > 'N';
+--this will affect V3's data set:
+SELECT * FROM V3;
+
+
+
+CREATE OR REPLACE VIEW V2 AS 
+SELECT aulName, phone FROM V1 WHERE aulName >'N' ORDER BY 1;
+UPDATE V2 SET AulName = 'XYZ';
+--Oracle
+
+ROLLBACK;
+
+
+--Analyzing Views #1
+
+CREATE OR REPLACE VIEW Oaklanders
+AS
+SELECT auFName AS First, auLName AS Last, t.titleID, title
+FROM Author a JOIN TitleAuthor ta ON a.auID = ta.auID
+	JOIN Title t ON ta.titleID = t.titleID
+WHERE city = 'Oakland'
+	AND state = 'CA';
+
+SELECT * FROM Oaklanders;
+
+DELETE FROM Oaklanders
+WHERE titleID = 'BU1032';
+ROLLBACK;
+SELECT * FROM TitleAuthor;
+UPDATE OAKLANDERS SET titleid = 'BU1032' WHERE titleid = 'BU2075';-- title id is mapped to a non key preserved table, cannot change it
+--can not update any of the fields, they all map to non key preserved tables
+INSERT INTO Oaklanders VALUES ('Anderson','Mr','BU1032','AAAA');
+
+
+--Analyzing vies #2
+CREATE OR REPLACE VIEW Oaklanders
+AS
+SELECT auFName AS First, auLName AS Last, ta.titleID, title
+FROM Author a JOIN TitleAuthor ta ON a.auID = ta.auID
+	JOIN Title t ON ta.titleID = t.titleID
+WHERE city = 'Oakland'
+	AND state = 'CA';
+
+SELECT * FROM Oaklanders;
+--UPDATE
+UPDATE Oaklanders
+SET titleID = 'BU7832'
+WHERE titleID = 'BU1032';--Works
+
+UPDATE Oaklanders SET titleid = 'BU7832', first = 'Jason' WHERE titleid = 'BU1032'; -- will not work, first comes from author
+UPDATE Oaklanders SET  first = 'Jason' WHERE titleid = 'BU1032'; -- will not work, first comes from author
+--updates work, but only on columns form titleAuthor - titleID
+ROLLBACK;
+
+--Insert into title (titleID, title, contract) values ('TL1111','DB is the best',1);
+
+INSERT INTO Oaklanders (titleID) VALUES('BUI1032'); -- missing several NOT NULL fields From titleAuthor, will not work
+
+UPDATE Oaklanders
+SET titleID = 'TL1111'
+WHERE titleID = 'BU7832';
+
+SELECT *
+FROM TitleAuthor
+WHERE titleID IN ('BU7832', 'TL1111');
+
+
+ROLLBACK;
+
+DELETE FROM Oaklanders
+WHERE titleID = 'BU1032';
+ROLLBACK;
+
+
+
+
+--#3
+
+CREATE OR REPLACE VIEW Oaklanders
+AS
+SELECT ta.auID, auFName AS First, auLName AS Last, ta.titleID, title, ta.auOrder
+FROM Author a JOIN TitleAuthor ta ON a.auID = ta.auID
+	JOIN Title t ON ta.titleID = t.titleID
+WHERE city = 'Oakland'
+	AND state = 'CA';
+  
+--  •	INSERT
+INSERT INTO Oaklanders (auID, titleID, auOrder)
+VALUES ('213-46-8915', 'BU1111', 3);
+
+ROLLBACK;
+--•	INSERT
+UPDATE Oaklanders
+SET titleID = 'BU7832'
+WHERE titleID = 'TL1111';
+
+ROLLBACK;
+--Update statement
+UPDATE Oaklanders
+SET titleID = 'TL1111'
+WHERE titleID = 'BU7832';
+
+
+--•	Delete statement
+DELETE FROM Oaklanders
+WHERE titleID = 'BU1032';
+
+ROLLBACK;
+
+
+--#4
+
+CREATE OR REPLACE VIEW CompleteBookInfo
+AS
+SELECT a.auID, auLName AS AuthorLast, auOrder, t.titleID, title, e.edID, edLName AS EditorLast, edOrder
+FROM Author a JOIN TitleAuthor ta ON a.auID = ta.auID
+	JOIN Title t ON ta.titleID = t.titleID
+	JOIN TitleEditor te ON t.titleID = te.titleID
+	JOIN Editor e ON te.edID = e.edID;
+  
+UPDATE CompleteBookInfo SET auOrder = 5 WHERE TitleID = 'BU1032';
+UPDATE CompleteBookInfo SET auOrder = 5 WHERE edID = 'BU1032';
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
